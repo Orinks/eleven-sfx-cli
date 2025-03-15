@@ -22,7 +22,7 @@ from elevenlabs.text_to_sound_effects.types.text_to_sound_effects_convert_reques
 
 # Initialize typer app and console
 app = typer.Typer(
-    help="Generate sound effects using Eleven Labs API",
+    help="Generate high-quality sound effects using the Eleven Labs API. Create custom audio from text descriptions with control over duration, quality, and more. Ideal for games, videos, and creative projects.",
     add_completion=False,
 )
 console = Console()
@@ -68,49 +68,60 @@ def validate_api_key() -> str:
 def generate(
     text: str = typer.Argument(
         ..., 
-        help="The text description of the sound effect to generate"
+        help="Text description of the sound effect to generate (e.g., 'Glass shattering on concrete' or 'Spacious braam for movie trailer')"
     ),
     output_file: Path = typer.Option(
         "output.mp3", 
         "--output", "-o",
-        help="Output file path"
+        help="File path where the generated sound effect will be saved"
     ),
     api_key: Optional[str] = typer.Option(
         None, 
         "--api-key", 
-        help="Eleven Labs API key (if not set via environment variable)",
+        help="Eleven Labs API key (if not set via environment variable or .env file)",
         envvar="ELEVENLABS_API_KEY"
     ),
     output_format: str = typer.Option(
         "mp3_44100_128", 
         "--format", "-f",
-        help=f"Output format of the generated audio",
+        help="Output format and quality of the generated audio (use --list-formats to see all options)",
         show_choices=True,
     ),
     duration: Optional[float] = typer.Option(
         None, 
         "--duration", "-d",
-        help="Duration of sound in seconds (0.5 to 22). If not specified, optimal duration will be determined from the text"
+        help="Duration of sound effect in seconds (range: 0.1 to 30.0). If not specified, an optimal duration will be automatically determined"
     ),
     prompt_influence: float = typer.Option(
         0.3, 
         "--influence", "-i",
-        help="Prompt influence value (0.0 - 1.0). Higher values make generation follow the prompt more closely",
+        help="Prompt influence value (0.0 - 1.0). Higher values make generation follow the text description more precisely, lower values allow more creative interpretation",
         min=0.0,
         max=1.0,
     ),
     verbose: bool = typer.Option(
         False, 
         "--verbose", "-v", 
-        help="Enable verbose output"
+        help="Enable detailed progress and status information during generation"
     ),
     list_formats: bool = typer.Option(
         False, 
         "--list-formats", 
-        help="List available output formats and exit"
+        help="List all available audio output formats with quality specifications and exit"
     ),
 ) -> None:
-    """Generate a sound effect from a text description."""
+    """Generate a sound effect from a text description.
+    
+    Create high-quality sound effects based on a text prompt using Eleven Labs API.
+    
+    For loopable sounds, include terms like 'seamless loop' in your text description and
+    consider setting an appropriate duration. For musical elements, specify BPM values.
+    
+    Examples:
+      • Basic effect: "Glass shattering on concrete"
+      • Loopable: "90s hip-hop drum loop at 90 BPM, seamless looping"
+      • Ambient: "Gentle wind through leaves, continuous seamless background"  
+    """
     # Check if we just need to list formats
     if list_formats:
         console.print("\n[bold]Available Output Formats:[/bold]")
@@ -137,9 +148,9 @@ def generate(
         sys.exit(1)
         
     # Validate duration
-    if duration is not None and (duration < 0.5 or duration > 22):
+    if duration is not None and (duration < 0.1 or duration > 30.0):
         console.print(
-            f"\n[bold red]Error:[/bold red] Duration must be between 0.5 and 22 seconds.\n"
+            f"\n[bold red]Error:[/bold red] Duration must be between 0.1 and 30 seconds.\n"
         )
         sys.exit(1)
     
@@ -198,8 +209,13 @@ def generate(
 
 @app.command()
 def version():
-    """Show the version of the tool."""
+    """Show the version and details about the Eleven Labs Sound Effects CLI tool.
+    
+    Displays the current version number, compatibility information, and
+    links to documentation and support resources.
+    """
     console.print("Eleven Labs Sound Effects CLI v1.0.0")
+    console.print("\nSupport and documentation: https://github.com/Orinks/eleven-sfx-cli")
 
 
 if __name__ == "__main__":
